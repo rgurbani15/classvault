@@ -1,0 +1,170 @@
+<!-- cv-build: 1.0.0-no-seed-data -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>ClassVault</title>
+<style>
+:root{--bg:#f5f3ee;--card:#fffefb;--tx:#1e211d;--mu:#6d6f66;--ln:#e4e1d8;--ac:#2f5d50;--red:#c2410c;--amb:#a16207;--grn:#2f6f3e;--sh:0 1px 2px rgba(30,33,29,.06);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151714;--card:#1e211d;--tx:#eceae2;--mu:#a2a498;--ln:#2e312b;--ac:#7fb5a3;--sh:none}}
+:root[data-theme="dark"]{--bg:#151714;--card:#1e211d;--tx:#eceae2;--mu:#a2a498;--ln:#2e312b;--ac:#7fb5a3;--sh:none}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:22px 18px 130px}
+h1{font-size:26px;margin:0 0 2px;letter-spacing:-.02em}h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mu);margin:26px 0 10px}h3{margin:0;font-size:16px}
+p{margin:8px 0;color:var(--mu)}small{font-size:12.5px}
+.brand{display:flex;align-items:center;gap:8px;color:var(--mu);font-size:13px;font-weight:600;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.card.done h3{text-decoration:line-through;opacity:.55}.card.done{opacity:.75}
+.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}.grow h3{overflow-wrap:anywhere}
+.ico{font-size:20px;width:38px;height:38px;border-radius:12px;background:var(--bg);display:grid;place-items:center;flex:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+.ghost{background:none;color:var(--ac);font-weight:600;padding:6px 8px;border-radius:8px}.ghost:hover{background:var(--bg)}.danger{color:var(--red)}
+.btn{background:var(--ac);color:var(--bg);font-weight:600;padding:12px 18px;border-radius:14px;width:100%}
+.btn2{background:var(--bg);font-weight:600;padding:12px 18px;border-radius:14px;border:1px solid var(--ln)}
+.chip{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--bg);color:var(--mu)}
+.c-red{background:#e5484d1f;color:var(--red)}.c-amb{background:#d977061f;color:var(--amb)}
+.st{font-size:12px;font-weight:600;padding:6px 11px;border-radius:99px;border:1px solid var(--ln);background:var(--bg);white-space:nowrap}
+.s-progress{background:#a162071f;color:var(--amb);border-color:transparent}.s-done{background:#16a34a1f;color:var(--grn);border-color:transparent}
+input,select,textarea{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--ln);background:var(--card);margin-bottom:10px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offset:-1px}
+label{font-size:12.5px;font-weight:600;color:var(--mu);display:block;margin-bottom:4px}
+.pills{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.pill{padding:7px 14px;border-radius:99px;background:var(--card);border:1px solid var(--ln);font-weight:600;font-size:13.5px;white-space:nowrap}.pill.on{background:var(--tx);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.cls{text-align:left;width:100%;background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:16px;box-shadow:var(--sh);border-top:4px solid}
+.cls b{font-size:16px;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
+.empty{text-align:center;color:var(--mu);padding:26px 12px;background:var(--card);border:1px dashed var(--ln);border-radius:14px;white-space:pre-line}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 24px));background:var(--card);border:1px solid var(--ln);border-radius:26px;box-shadow:0 8px 30px rgba(30,35,80,.18);display:flex;align-items:center;justify-content:space-around;padding:8px 6px;z-index:5}
+nav button{background:none;display:flex;flex-direction:column;align-items:center;font-size:11.5px;color:var(--mu);padding:4px 10px;font-weight:600;gap:1px}nav button span{font-size:20px}nav button.on{color:var(--ac)}
+nav .plus{width:58px;height:58px;border-radius:50%;margin-top:-30px;background:var(--ac);color:var(--bg);box-shadow:0 3px 10px rgba(0,0,0,.22);display:grid;place-items:center;padding:0}
+#modal{position:fixed;inset:0;background:rgba(10,12,30,.5);display:none;align-items:flex-end;justify-content:center;z-index:20}
+#modal.on{display:flex}.sheet{background:var(--bg);width:min(560px,100%);max-height:92%;overflow:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+@media(min-width:600px){#modal{align-items:center}.sheet{border-radius:24px}}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:10px}.types button{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:18px 10px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--sh)}.types span{font-size:28px}
+#toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:600;transition:.3s;z-index:30}#toast.on{transform:translate(-50%,0)}
+.onb{min-height:100vh;display:flex;flex-direction:column;justify-content:center;max-width:460px;margin:0 auto;padding:30px 22px}
+.onb .logo{font-size:46px}.dots{display:flex;gap:6px;margin:20px 0}.dots i{height:5px;flex:1;border-radius:9px;background:var(--ln)}.dots i.on{background:var(--ac)}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}.tags .pill{cursor:pointer}
+svg{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.22em;flex:none}.chip svg{width:1em;height:1em}.plus svg{width:26px;height:26px;stroke-width:2.2}.onb .logo{color:var(--ac)}.onb .logo svg{width:46px;height:46px}.ico svg{width:20px;height:20px}nav button span{display:block;line-height:0}nav button svg{width:22px;height:22px}
+html{-webkit-text-size-adjust:100%;overscroll-behavior:none}*{-webkit-tap-highlight-color:transparent}input,select,textarea{font-size:16px}.ghost{padding:10px}.st{padding:9px 13px}.note{font-size:12.5px;color:var(--mu);display:flex;gap:8px;align-items:flex-start;margin:24px 0 0}.note svg{margin-top:2px}
+.onb.c{text-align:center}.onb .logo{display:flex;justify-content:center;margin-bottom:8px}.onb.c .note{justify-content:center;text-align:left}
+</style></head><body>
+<div id="app"></div><div id="modal"></div><div id="toast"></div>
+<script>
+const K='classvault.v1',$=s=>document.querySelector(s);
+let S=null;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+if(!S||typeof S!='object'||!Array.isArray(S.classes)||!Array.isArray(S.items))S={user:null,classes:[],items:[]};
+S.classes=S.classes.filter(c=>c&&c.id&&c.name);
+S.items=S.items.filter(i=>i&&i.id&&i.title&&['assignment','note','link','file'].includes(i.type)).map(i=>({...i,status:['todo','progress','done'].includes(i.status)?i.status:'todo',due:/^\d{4}-\d\d-\d\d$/.test(i.due||'')?i.due:'',desc:i.desc||'',link:i.link||''}));
+const persist=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Could not save. Storage may be full.')}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const P={home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',vault:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',classes:'<path d="M3 8l9-4 9 4-9 4z"/><path d="M7 10v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',plus:'<path d="M12 5v14M5 12h14"/>',assignment:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',note:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',file:'<path d="M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/>',back:'<path d="M15 5l-7 7 7 7"/>',camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'};
+const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${P[n]||''}</svg>`;
+const IC=new Proxy({},{get:(_,k)=>ic(k)}),TN={assignment:'Assignment',note:'Note',link:'Link',file:'File'};
+const ST={todo:'To Do',progress:'In Progress',done:'✓ Done'},NEXT={todo:'progress',progress:'done',done:'todo'};
+const COL=['#2f5d50','#b45309','#c2410c','#2b6f8e','#4d7c0f','#0f766e','#9a3412'];
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d)};
+const diff=s=>Math.round((new Date(s+'T00:00')-new Date(ymd(new Date())+'T00:00'))/864e5);
+const cls=id=>S.classes.find(c=>c.id==id)||{name:'No class',color:'#999'};
+let view='home',F={q:'',type:'all',cls:'',status:'',due:''},Q='',ob=1,obc=[];
+const note=()=>`<p class="note">${ic('vault')}<span>Everything in ClassVault is stored only on this device. It isn't synced to other devices, and deleting the app will erase it.</span></p>`;
+async function shr(id){const i=S.items.find(x=>x.id==id);try{const b=await bget(i.att.id),f=new File([b],i.att.name,{type:i.att.type});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else toast('Sharing is not available')}catch(e){if(!e||e.name!='AbortError')toast('Could not share the file')}}
+let busy=0,ATT=null,lv;
+const db=new Promise((ok,no)=>{try{const r=indexedDB.open('cv',1);r.onupgradeneeded=()=>r.result.createObjectStore('b');r.onsuccess=()=>ok(r.result);r.onerror=()=>no()}catch(e){no()}});
+const tx=async(m,f)=>{const d=await db;return new Promise((ok,no)=>{const t=d.transaction('b',m),r=f(t.objectStore('b'));t.oncomplete=()=>ok(r.result);t.onerror=()=>no()})};
+const bput=(k,v)=>tx('readwrite',s=>s.put(v,k)),bget=k=>tx('readonly',s=>s.get(k)),bdel=k=>tx('readwrite',s=>s.delete(k));
+async function showAtt(){const el=$('#att');if(!el)return;if(!ATT){el.innerHTML='<small style="color:var(--mu)">None</small>';return}let p='';
+ if(ATT.type.startsWith('image/')){try{const b=ATT.blob||await bget(ATT.id);if(b){ATT.url=ATT.url||URL.createObjectURL(b);p=`<img src="${ATT.url}" alt="" style="max-width:100%;max-height:180px;border-radius:10px;display:block;margin-bottom:6px">`}}catch(e){}}
+ el.innerHTML=p+`<div class="row"><span class="chip grow">${esc(ATT.name)} · ${Math.ceil(ATT.size/1024)} KB</span><button class="ghost danger" data-a="rmatt">Remove</button></div>`}
+async function pick(f){if(!f)return;if(!/^image\/|pdf$|^text\/|officedocument|msword|ms-|csv/.test(f.type)){toast("That file type isn't supported");return}if(f.size>25e6){toast('File is over 25 MB');return}
+ try{let b=f,t=f.type;if(t.startsWith('image/')&&t!='image/gif'){const m=await createImageBitmap(f),k=Math.min(1,1800/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=Math.round(m.width*k);c.height=Math.round(m.height*k);c.getContext('2d').drawImage(m,0,0,c.width,c.height);b=await new Promise(r=>c.toBlob(r,'image/jpeg',.82));if(!b)throw 0;t='image/jpeg'}
+ ATT={id:uid(),name:f.name||'photo.jpg',type:t,size:b.size,blob:b};showAtt()}catch(e){toast('Could not read that file')}}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2000)}
+function modal(h){const m=$('#modal');m.innerHTML=h?`<div class="sheet">${h}</div>`:'';m.classList.toggle('on',!!h)}
+function cfm(msg,act){modal(`<h3>${msg}</h3><p>This can't be undone.</p><div class="row" style="margin-top:14px"><button class="btn2 grow" data-a="x">Cancel</button><button class="btn grow" style="background:var(--red)" data-a="yes">Delete</button></div>`);cfm.f=act}
+function chip(i){if(!i.due||i.status=='done')return'';const d=diff(i.due);
+ const l=d<0?'Overdue':d==0?'Due today':d==1?'Due tomorrow':'Due '+new Date(i.due+'T00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+ return`<span class="chip ${d<=0?'c-red':d==1?'c-amb':''}">${l}</span>`}
+function card(i){const c=cls(i.cls);
+ return`<article class="card ${i.status=='done'?'done':''}"><div class="row"><span class="ico">${IC[i.type]}</span><div class="grow"><h3>${esc(i.title)}</h3><small style="color:${c.color}">● ${esc(c.name)}</small></div>${i.type=='assignment'?`<button class="st s-${i.status}" data-a="st" data-id="${i.id}" title="Change status">${ST[i.status]}</button>`:`<span class="chip">${TN[i.type]}</span>`}</div>${i.desc?`<p>${esc(i.desc.length>110?i.desc.slice(0,110)+'…':i.desc)}</p>`:''}<div class="row" style="margin-top:6px">${chip(i)}${i.att?`<span class="chip">${ic('file')} ${esc(i.att.name.slice(0,18))}</span>`:''}<span class="grow"></span><button class="ghost" data-a="open" data-id="${i.id}">Open</button><button class="ghost" data-a="edit" data-id="${i.id}">Edit</button></div></article>`}
+const cards=(l,e)=>l.length?l.map(card).join(''):`<div class="empty">${e}</div>`;
+const asg=()=>S.items.filter(i=>i.type=='assignment'&&i.status!='done').sort((a,b)=>(a.due||'9')<(b.due||'9')?-1:1);
+function home(){const h=new Date().getHours(),g=h<12?'Good morning':h<18?'Good afternoon':'Good evening',a=asg();
+ const dd=a.filter(i=>i.due&&diff(i.due)<=0),tm=a.filter(i=>i.due&&diff(i.due)==1),up=a.filter(i=>!i.due||diff(i.due)>1);
+ const rec=[...S.items].sort((a,b)=>b.created-a.created).slice(0,4),caught=`You're all caught up.`;
+ return`<div class="brand">${ic('vault')} Your School Vault</div><h1>${g}</h1><p style="margin:0">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</p>
+ <h2>Due Today</h2>${cards(dd,caught)}<h2>Due Tomorrow</h2>${cards(tm,caught)}<h2>Upcoming</h2>${cards(up,'Nothing due yet.')}
+ <h2>Recently Saved</h2>${cards(rec,'Your vault is empty.\nSave your first school resource.')}
+ <h2>Your Classes</h2>${S.classes.length?`<div class="pills">${S.classes.map(c=>`<button class="pill" data-a="cl" data-id="${c.id}" style="border-color:${c.color}">${esc(c.name)}</button>`).join('')}</div>`:'<div class="empty">Add your first class to get started.</div>'}`}
+function match(i,q){const h=(i.title+' '+i.desc+' '+i.link+' '+((i.att&&i.att.name)||'')+' '+cls(i.cls).name+' '+TN[i.type]).toLowerCase();return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>h.includes(w))}
+function vres(){const l=S.items.filter(i=>(F.type=='all'||i.type==F.type)&&(!F.cls||i.cls==F.cls)&&(!F.status||i.status==F.status)&&(!F.due||(i.due&&(F.due=='today'?diff(i.due)==0:diff(i.due)<=7&&diff(i.due)>=0)))&&match(i,F.q)).sort((a,b)=>b.created-a.created);
+ return cards(l,S.items.length?'No matches. Try a different search.':'Your vault is empty.\nSave your first school resource.')}
+function vault(){const o=(v,t,c)=>`<option value="${v}" ${c==v?'selected':''}>${t}</option>`;
+ return`<div class="brand">${ic('vault')} Vault</div><h1>Your Vault</h1><br><input id="vq" placeholder="Search everything…" value="${esc(F.q)}">
+ <div class="pills">${['all','assignment','note','link','file'].map(t=>`<button class="pill ${F.type==t?'on':''}" data-a="ft" data-id="${t}">${t=='all'?'All':TN[t]+'s'}</button>`).join('')}</div>
+ <div class="row"><select data-f="cls">${o('','All classes',F.cls)}${S.classes.map(c=>o(c.id,esc(c.name),F.cls)).join('')}</select><select data-f="status">${o('','Any status',F.status)}${o('todo','To Do',F.status)}${o('progress','In Progress',F.status)}${o('done','Done',F.status)}</select><select data-f="due">${o('','Any date',F.due)}${o('today','Due today',F.due)}${o('week','This week',F.due)}</select></div>
+ <div id="res">${vres()}</div>`}
+function classes(){return`<div class="brand">${ic('vault')} Classes</div><h1>Classes</h1><br>${S.classes.length?`<div class="grid">${S.classes.map(c=>{const it=S.items.filter(i=>i.cls==c.id),n=t=>it.filter(i=>i.type==t).length;
+ return`<button class="cls" data-a="cl" data-id="${c.id}" style="border-top-color:${c.color}"><b>${esc(c.name)}</b><small>${it.filter(i=>i.type=='assignment'&&i.status!='done').length} unfinished · ${n('assignment')} assignments<br>${n('note')} notes · ${n('link')+n('file')} saved resources</small><br><br><span style="color:var(--ac);font-weight:600">View Class →</span></button>`}).join('')}</div>`:'<div class="empty">Add your first class to get started.</div>'}<br><button class="btn" data-a="addc">+ Add Class</button>`}
+function classPg(id){const c=S.classes.find(x=>x.id==id);if(!c){view='classes';return classes()}
+ const sec=(t,n)=>{const l=S.items.filter(i=>i.cls==id&&i.type==t);return`<h2>${n} (${l.length})</h2>${cards(l,'Nothing here yet.')}`};
+ return`<button class="ghost" data-a="go" data-id="classes">${ic('back')} Classes</button><h1 style="color:${c.color}">${esc(c.name)}</h1><p>${S.items.filter(i=>i.cls==id&&i.type=='assignment'&&i.status!='done').length} unfinished assignments</p>${sec('assignment','Assignments')}${sec('note','Notes')}${sec('link','Links')}${sec('file','Files')}<br><button class="ghost" data-a="renc" data-id="${id}">Rename class</button> <button class="ghost danger" data-a="delc" data-id="${id}">Delete class</button>`}
+function sres(){if(!Q.trim())return'<div class="empty">Search titles, notes, links, class names and file names.</div>';
+ const l=S.items.filter(i=>match(i,Q));if(!l.length)return'<div class="empty">No results. Nothing saved matches that yet.</div>';
+ return['assignment','note','link','file'].map(t=>{const x=l.filter(i=>i.type==t);return x.length?`<h2>${TN[t]}s</h2>${x.map(card).join('')}`:''}).join('')}
+function searchPg(){return`<div class="brand">${ic('vault')} Search</div><h1>Search</h1><br><input id="sq" placeholder="Search your school vault…" value="${esc(Q)}"><div id="sres">${sres()}</div>`}
+function onb(){const d=`<div class="dots">${[1,2,3].map(n=>`<i class="${n<=ob?'on':''}"></i>`).join('')}</div>`;
+ if(ob==1)return`<div class="onb c"><div class="logo">${ic('vault')}</div><h1 style="font-size:34px">Welcome to ClassVault</h1><p style="font-size:17px">Everything you need for school. In one place.</p>${note()}${d}<button class="btn" data-a="on">Get started</button></div>`;
+ if(ob==2)return`<div class="onb"><h1>Add your classes</h1><p>Add the classes you take. You can change them anytime.</p><div class="tags">${obc.map((c,i)=>`<button class="pill on" data-a="orm" data-id="${i}">${esc(c)} ✕</button>`).join('')}</div><div class="row"><input id="oc" placeholder="Class name" style="margin:0"><button class="btn2" data-a="oadd">Add</button></div>${d}<button class="btn" data-a="on">Continue</button></div>`;
+ return`<div class="onb c"><div class="logo">${ic('check')}</div><h1 style="font-size:34px">You're ready.</h1><p style="font-size:17px">Start saving assignments, notes, links, and files.</p>${note()}${d}<button class="btn" data-a="fin">Open my vault</button></div>`}
+function render(){const A=$('#app');if(!S.user){A.innerHTML=onb();return}
+ const b=view=='home'?home():view=='vault'?vault():view=='classes'?classes():view=='search'?searchPg():classPg(view.slice(2));
+ const v=view.startsWith('c:')?'classes':view,n=(id,i,t)=>`<button class="${v==id?'on':''}" data-a="go" data-id="${id}"><span>${ic(i)}</span>${t}</button>`;
+ A.innerHTML=`<main>${b}${view=='home'||view=='vault'?note():''}</main><nav>${n('home','home','Home')}${n('vault','vault','Vault')}<button class="plus" data-a="qs" aria-label="Quick Save">${ic('plus')}</button>${n('classes','classes','Classes')}${n('search','search','Search')}</nav>`;if(lv!==view){scrollTo(0,0);lv=view}}
+function qs(){modal(`<h1 style="font-size:22px">What do you want to save?</h1><br><div class="types">${Object.keys(TN).map(t=>`<button data-a="ty" data-id="${t}"><span>${IC[t]}</span>${TN[t]}</button>`).join('')}</div>`)}
+function form(t,it){if(!S.classes.length){modal(`<div class="empty">Add your first class to get started.</div><br><button class="btn" data-a="addc">+ Add Class</button>`);return}
+ const cur=it?it.cls:(view.startsWith('c:')?view.slice(2):S.classes[0].id);
+ modal(`<h1 style="font-size:22px">${it?'Edit':'Save'} ${TN[t].toLowerCase()}</h1><br><label>Title *</label><input id="f-t" placeholder="What is it?" value="${esc(it?.title||'')}">
+ <label>Class *</label><select id="f-c">${S.classes.map(c=>`<option value="${c.id}" ${c.id==cur?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+ <label>Description</label><textarea id="f-d" rows="3" placeholder="Details (optional)">${esc(it?.desc||'')}</textarea>
+ ${t=='assignment'?`<label>Due date</label><input id="f-due" type="date" value="${it?.due||''}"><label>Status</label><select id="f-s">${Object.keys(ST).map(s=>`<option value="${s}" ${(it?.status||'todo')==s?'selected':''}>${ST[s].replace('✓ ','')}</option>`).join('')}</select>`:''}
+ ${t!='file'?`<label>Link</label><input id="f-l" placeholder="https://…" value="${esc(it?.link||'')}">`:''}
+ <label>Attachment</label><div id="att" style="margin-bottom:8px"></div><div class="row" style="margin-bottom:12px"><label class="btn2 grow" style="margin:0;text-align:center;cursor:pointer;color:var(--tx)">${ic('file')} Photo or file<input id="f-f" type="file" accept="image/*,.pdf,.txt,.csv,.doc,.docx,.ppt,.pptx,.xls,.xlsx" hidden></label><label class="btn2 grow" style="margin:0;text-align:center;cursor:pointer;color:var(--tx)">${ic('camera')} Camera<input id="f-cam" type="file" accept="image/*" capture="environment" hidden></label></div>
+ <div class="row"><button class="btn" data-a="sv" data-id="${it?.id||''}" data-t="${t}">${it?'Save changes':'Save to Vault'}</button></div>${it?`<br><button class="ghost danger" data-a="del" data-id="${it.id}">Delete</button>`:''}`);ATT=it?.att?{...it.att}:null;showAtt();setTimeout(()=>$('#f-t')?.focus(),50)}
+async function sv(id,t){const title=$('#f-t').value.trim();if(!title){toast('Add a title first');$('#f-t').focus();return}if(busy)return;busy=1;
+ const o=S.items.find(i=>i.id==id)||{id:uid(),type:t,created:Date.now(),status:'todo',link:'',desc:''};
+ Object.assign(o,{title,cls:$('#f-c').value,desc:$('#f-d').value.trim()});
+ if($('#f-due'))o.due=$('#f-due').value,o.status=$('#f-s').value;
+ if($('#f-l')){let l=$('#f-l').value.trim();if(l&&!/^https?:\/\//.test(l))l='https://'+l;if(l){try{new URL(l)}catch(e){toast('That link looks invalid');busy=0;return}}o.link=l}
+ try{if(ATT&&ATT.blob){await bput(ATT.id,ATT.blob);if(o.att&&o.att.id!=ATT.id)bdel(o.att.id).catch(()=>{});o.att={id:ATT.id,name:ATT.name,type:ATT.type,size:ATT.size}}else if(!ATT&&o.att){bdel(o.att.id).catch(()=>{});delete o.att}}catch(e){toast('Could not save the attachment');busy=0;return}
+ if(!id)S.items.push(o);busy=0;persist();modal('');render();toast(id?'Changes saved.':'Saved to your vault.')}
+async function open(id){const i=S.items.find(x=>x.id==id);if(!i)return;if(i.att){try{const b=await bget(i.att.id);if(!b)throw 0;const u=URL.createObjectURL(b),im=i.att.type.startsWith('image/');
+ modal(`<div class="row"><h3 class="grow">${esc(i.att.name)}</h3><button class="ghost" data-a="x">Close</button></div><br>${im?`<img src="${u}" alt="" style="width:100%;border-radius:12px">`:`<iframe src="${u}" style="width:100%;height:55vh;border:1px solid var(--ln);border-radius:12px;background:#fff"></iframe>`}<br><br><div class="row"><button class="btn2 grow" data-a="shr" data-id="${id}">Share / Save</button>${i.link?`<button class="btn2 grow" data-a="lnk" data-id="${id}">Open link</button>`:''}</div>`)}catch(e){toast('Attachment is unavailable')}return}
+ if(i.link){window.open(i.link,'_blank','noopener');return}form(i.type,i)}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(e.target.id=='modal'){modal('');return}if(!el)return;const a=el.dataset.a,id=el.dataset.id;
+ if(a=='go'){modal('');view=id;render()}else if(a=='cl'){view='c:'+id;modal('');render()}
+ else if(a=='qs')qs();else if(a=='ty')form(id);else if(a=='sv')sv(id,el.dataset.t);
+ else if(a=='st'){const i=S.items.find(x=>x.id==id);i.status=NEXT[i.status];persist();render();if(i.status=='done')toast('Assignment completed.')}
+ else if(a=='open')open(id);else if(a=='edit'){const i=S.items.find(x=>x.id==id);form(i.type,i)}
+ else if(a=='del')cfm('Delete this item?',()=>{S.items.filter(x=>x.id==id&&x.att).forEach(x=>bdel(x.att.id).catch(()=>{}));S.items=S.items.filter(x=>x.id!=id);persist();modal('');render();toast('Deleted.')});
+ else if(a=='delc')cfm('Delete this class and everything saved in it?',()=>{S.classes=S.classes.filter(x=>x.id!=id);S.items.filter(x=>x.cls==id&&x.att).forEach(x=>bdel(x.att.id).catch(()=>{}));S.items=S.items.filter(x=>x.cls!=id);persist();modal('');view='classes';render();toast('Class deleted.')});
+ else if(a=='rmatt'){ATT=null;showAtt()}
+ else if(a=='renc'){modal(`<h1 style="font-size:22px">Rename class</h1><br><input id="nc" value="${esc(cls(id).name)}"><button class="btn" data-a="renc2" data-id="${id}">Save</button>`)}
+ else if(a=='renc2'){const n=$('#nc').value.trim();if(!n)return toast('Enter a name');if(S.classes.some(c=>c.id!=id&&c.name.toLowerCase()==n.toLowerCase()))return toast('That class already exists');cls(id).name=n;persist();modal('');render();toast('Class renamed.')}
+ else if(a=='shr')shr(id);else if(a=='lnk')window.open(S.items.find(x=>x.id==id).link,'_blank','noopener');
+ else if(a=='yes')cfm.f();else if(a=='x')modal('');
+ else if(a=='addc'){modal(`<h1 style="font-size:22px">Add a class</h1><br><input id="nc" placeholder="Class name"><button class="btn" data-a="addc2">Add Class</button>`);setTimeout(()=>$('#nc')?.focus(),50)}
+ else if(a=='addc2'){const n=$('#nc').value.trim();if(!n)return toast('Enter a name');if(S.classes.some(c=>c.name.toLowerCase()==n.toLowerCase()))return toast('That class already exists');S.classes.push({id:uid(),name:n,color:COL[S.classes.length%COL.length]});persist();modal('');render();toast('Class added.')}
+ else if(a=='ft'){F.type=id;render()}else if(a=='on'){ob++;render()}else if(a=='orm'){obc.splice(id,1);render()}
+ else if(a=='oadd'){const v=$('#oc').value.trim();if(v&&!obc.some(c=>c.toLowerCase()==v.toLowerCase())){obc.push(v);render()}}
+ else if(a=='fin'){S.user={name:'Guest'};S.classes=obc.map((n,i)=>({id:uid(),name:n,color:COL[i%COL.length]}));persist();render()}});
+document.addEventListener('input',e=>{if(e.target.id=='vq'){F.q=e.target.value;$('#res').innerHTML=vres()}if(e.target.id=='sq'){Q=e.target.value;$('#sres').innerHTML=sres()}});
+document.addEventListener('change',e=>{if(e.target.id=='f-f'||e.target.id=='f-cam'){pick(e.target.files[0]);e.target.value='';return}const f=e.target.dataset.f;if(f){F[f]=e.target.value;$('#res').innerHTML=vres()}});
+document.addEventListener('keydown',e=>{if(e.key=='Escape')modal('');if(e.key=='Enter'&&e.target.id=='oc')$('[data-a=oadd]').click();if(e.key=='Enter'&&e.target.id=='nc')($('[data-a=addc2]')||$('[data-a=renc2]')).click()});
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.user&&!$('#modal').classList.contains('on'))render()});
+render();
+</script></body></html>
