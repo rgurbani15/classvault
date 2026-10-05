@@ -93,3 +93,4 @@ The vault is stored on the device (localStorage + IndexedDB): no accounts, analy
 - Tests: `npm install` then `npm test`.
 - iOS: `npx cap sync ios` then `npx cap open ios` (needs Xcode).
 - Try the engine: Home, then **Analyze my workload**, then **Load demo data (for judges)**.
+- NOTE-You may have to add a single assignment first before the Analyze my workload button appears. 
