@@ -5,7 +5,7 @@
 ClassVault is a local-first iOS app (Capacitor) where students save assignments, notes, links, photos and files by class. For ImpactHack it gained **Smart Import** (AI turns messy assignment text into tasks) and a **Workload Engine** that answers what deadlines alone can't: *what should I work on first?*
 
 ## Hackathon transparency
-ClassVault 1.0 existed before ImpactHack (see tag `v1.0-pre-hackathon`). Everything below is new work since then:
+ClassVault 1.0 existed before ImpactHack (Was created a few days prior to start) (see tag `v1.0-pre-hackathon`). Everything below is new work since then:
 - Estimated time on assignments, and a "how long did it actually take?" prompt on completion
 - An on-device estimator that learns how long *this student* takes per class
 - A capacity-based scheduler that ranks tasks and says when each must start, and why
