@@ -1,4 +1,4 @@
-<!-- cv-build: 1.0.0-no-seed-data -->
+<!-- cv-build: 1.1.0-workload-engine (hackathon branch) -->
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
@@ -56,7 +56,8 @@ const K='classvault.v1',$=s=>document.querySelector(s);
 let S=null;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 if(!S||typeof S!='object'||!Array.isArray(S.classes)||!Array.isArray(S.items))S={user:null,classes:[],items:[]};
 S.classes=S.classes.filter(c=>c&&c.id&&c.name);
-S.items=S.items.filter(i=>i&&i.id&&i.title&&['assignment','note','link','file'].includes(i.type)).map(i=>({...i,status:['todo','progress','done'].includes(i.status)?i.status:'todo',due:/^\d{4}-\d\d-\d\d$/.test(i.due||'')?i.due:'',desc:i.desc||'',link:i.link||''}));
+S.items=S.items.filter(i=>i&&i.id&&i.title&&['assignment','note','link','file'].includes(i.type)).map(i=>({...i,status:['todo','progress','done'].includes(i.status)?i.status:'todo',due:/^\d{4}-\d\d-\d\d$/.test(i.due||'')?i.due:'',desc:i.desc||'',link:i.link||'',est:+i.est>0?Math.min(+i.est,1440):0,actual:+i.actual>0?Math.min(+i.actual,1440):0}));
+S.hours=[1,2,3,4,5,6].includes(S.hours)?S.hours:2;
 const persist=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Could not save. Storage may be full.')}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -70,10 +71,72 @@ const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d)};
 const diff=s=>Math.round((new Date(s+'T00:00')-new Date(ymd(new Date())+'T00:00'))/864e5);
 const cls=id=>S.classes.find(c=>c.id==id)||{name:'No class',color:'#999'};
 let view='home',F={q:'',type:'all',cls:'',status:'',due:''},Q='',ob=1,obc=[];
-const note=()=>`<p class="note">${ic('vault')}<span>Everything in ClassVault is stored only on this device. It isn't synced to other devices, and deleting the app will erase it.</span></p>`;
+const note=()=>`<p class="note">${ic('vault')}<span>Everything in ClassVault is stored only on this device. It isn't synced to other devices, and deleting the app will erase it. Only Smart Import sends anything off your device: the text you paste into it goes to an AI service.</span></p>`;
 async function shr(id){const i=S.items.find(x=>x.id==id);try{const b=await bget(i.att.id),f=new File([b],i.att.name,{type:i.att.type});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else toast('Sharing is not available')}catch(e){if(!e||e.name!='AbortError')toast('Could not share the file')}}
+/* ---- Workload engine (on-device; no data leaves the phone) ---- */
+const fmt=m=>m>=60?Math.floor(m/60)+'h'+(m%60?' '+m%60+'m':''):m+'m';
+const dayName=n=>n<=0?'today':n==1?'tomorrow':new Date(Date.now()+n*864e5).toLocaleDateString(undefined,{weekday:'long'});
+function mults(){const d=S.items.filter(i=>i.type=='assignment'&&i.status=='done'&&i.est>0&&i.actual>0),r=i=>Math.min(3,Math.max(.4,i.actual/i.est)),g=(d.reduce((a,i)=>a+r(i),0)+2)/(d.length+2);
+ return{g,n:d.length,c:id=>{const x=d.filter(i=>i.cls==id);return{m:(x.reduce((a,i)=>a+r(i),0)+2*g)/(x.length+2),n:x.length}}}}
+function plan(cap,M){const T=asg().map(i=>{const x=M.c(i.cls);return{i,x,p:Math.max(5,Math.round((i.est||45)*x.m/5)*5),d:i.due?Math.max(diff(i.due),0):14}}),used={};
+ [...T].sort((a,b)=>b.d-a.d).forEach(t=>{let left=t.p,day=t.d;t.start=t.d;while(left>0&&day>=0){const k=Math.min(cap-(used[day]||0),left);if(k>0){used[day]=(used[day]||0)+k;left-=k;t.start=day}day--}t.over=left});
+ T.forEach(t=>{const adj=t.i.est&&t.x.n>=2&&Math.abs(t.x.m-1)>=.1?` You usually take ${t.x.m.toFixed(1)}× your estimate in this class, so I adjusted it.`:'';
+  t.why=(t.over>0?`This won't fully fit in ${S.hours} h a day: about ${fmt(t.over)} short. Start now.`:t.start==0?`With your other work, it has to start today to finish before it's due.`:`There's room: it can wait until ${dayName(t.start)} and still fit.`)+adj+(t.i.est?'':' No estimate set, so I assumed 45 min.')});
+ return T.sort((a,b)=>(b.over>0)-(a.over>0)||a.start-b.start||a.d-b.d||b.p-a.p)}
+const dueTxt=i=>{if(!i.due)return'no due date';const d=diff(i.due);return d<=0?(d<0?'overdue':'due today'):d==1?'due tomorrow':'due '+new Date(i.due+'T00:00').toLocaleDateString(undefined,{weekday:'long'})};
+const rec=(t,k)=>{const c=cls(t.i.cls),l=t.over>0||t.start==0?['Start today','c-red']:t.start==1?['Start tomorrow','c-amb']:['Start '+dayName(t.start),''];
+ return`<article class="card"><div class="row"><span class="ico"><b>${k+1}</b></span><div class="grow"><h3>${esc(t.i.title)}</h3><small style="color:${c.color}">● ${esc(c.name)}</small></div><span class="chip ${l[1]}">${l[0]}</span></div><p style="color:var(--tx);margin:8px 0 2px">About ${fmt(t.p)} · ${dueTxt(t.i)}</p><p style="margin:0">${t.why}</p><div class="row"><span class="grow"></span><button class="ghost" data-a="edit" data-id="${t.i.id}">Edit</button></div></article>`};
+function planPg(){const M=mults(),T=plan(S.hours*60,M),L=S.classes.map(c=>({c,x:M.c(c.id)})).filter(o=>o.x.n>0),dm=S.items.some(i=>i.demo);
+ return`<button class="ghost" data-a="go" data-id="home">${ic('back')} Home</button><h1>Workload plan</h1><p>Hours you can work per day <select id="hrs" style="width:auto;display:inline-block;margin:0 0 0 6px">${[1,2,3,4,5,6].map(h=>`<option value="${h}" ${h==S.hours?'selected':''}>${h} h</option>`).join('')}</select></p>
+ ${T.length?`<p>${T.length} tasks · about ${fmt(T.reduce((a,t)=>a+t.p,0))} of work, in the order I'd do them</p>`+T.map(rec).join(''):'<div class="empty">Nothing to plan yet.\nAdd assignments with a due date and an estimated time.</div>'}
+ <h2>What ClassVault has learned</h2>${L.length?L.map(o=>`<div class="card"><b>${esc(o.c.name)}</b><br><small>${o.x.n} finished · ${o.x.m>1.1?`you take ${o.x.m.toFixed(1)}× your estimates`:o.x.m<.9?`you finish faster than you estimate (${o.x.m.toFixed(1)}×)`:'your estimates are close'}</small></div>`).join(''):'<div class="empty">Finish a few assignments and say how long they took. Predictions adapt to you.</div>'}
+ <p>${dm?'<button class="ghost danger" data-a="demox">Clear demo data</button>':'<button class="ghost" data-a="demo">Load demo data (for judges)</button>'}</p>`}
+function ask(i){modal(`<h1 style="font-size:22px">How long did it take?</h1><p>${i.est?'You estimated '+fmt(i.est)+'. ':''}This helps ClassVault predict your next assignments.</p><div class="types" style="grid-template-columns:repeat(3,1fr)">${[15,30,45,60,90,120].map(m=>`<button data-a="act" data-id="${i.id}" data-m="${m}" style="padding:14px 4px">${fmt(m)}</button>`).join('')}</div><br><button class="btn2" style="width:100%" data-a="x">Skip</button>`)}
+function demo(){const cs=[['Biology','#2f5d50'],['World History','#b45309'],['Algebra','#2b6f8e']].map(([name,color])=>({id:uid(),name,color,demo:1}));S.classes.push(...cs);const[b,h,a]=cs.map(c=>c.id);
+ const add=(title,cls,due,est,status,actual)=>S.items.push({id:uid(),type:'assignment',title,cls,desc:'',link:'',due:addD(due),est,status:status||'todo',actual:actual||0,created:Date.now()-S.items.length,demo:1});
+ [['Unit 4 essay',h,-9,60,'done',90],['Chapter 5 quiz',h,-6,30,'done',40],['Map analysis',h,-3,45,'done',60],['Problem set 3.1',a,-8,40,'done',30],['Problem set 3.2',a,-5,40,'done',32],['Quiz review',a,-2,30,'done',24],['Cell lab report',b,-7,60,'done',75],
+ ['Photosynthesis write-up',b,1,60],['Essay draft',h,3,90],['Problem set 3.3',a,2,40],['Vocabulary review',h,2,20],['Group project outline',b,6,120]].forEach(r=>add(...r));persist();render();toast('Demo data loaded.')}
+/* ---- Smart Import: the ONLY feature that sends text off the device. The AI runs behind the ClassVault Worker (worker/); there is no API key in this file. ---- */
+let SMART_IMPORT_URL='https://YOUR-WORKER.workers.dev/api/smart-import';
+const SI_MAX=4000,SI_KINDS=['homework','reading','essay','project','quiz','test','lab','other'],SI_EST=[15,30,45,60,90,120,180,240];
+P.spark='<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8z"/>';
+let SI={text:'',tasks:[],err:''};
+const siDate=s=>typeof s=='string'&&/^\d{4}-\d\d-\d\d$/.test(s)&&!isNaN(Date.parse(s+'T00:00:00Z'))&&new Date(s+'T00:00:00Z').toISOString().slice(0,10)==s;
+const siStr=(v,n)=>typeof v=='string'?v.trim().slice(0,n):'';
+function siClean(a){return(Array.isArray(a)?a:[]).slice(0,10).map(t=>{if(!t||typeof t!='object')return null;const m=+t.estimatedMinutes||45;return{title:siStr(t.title,120),cn:siStr(t.className,60),due:siDate(t.dueDate)?t.dueDate:'',est:SI_EST.reduce((p,c)=>Math.abs(c-m)<Math.abs(p-m)?c:p,45),kind:SI_KINDS.includes(t.type)?t.type:'other',steps:(Array.isArray(t.subtasks)?t.subtasks:[]).slice(0,8).map(x=>siStr(x,120)).filter(Boolean)}}).filter(t=>t&&t.title)}
+function siMsg(e){const c=e&&e.c||(e&&e.name=='AbortError'?'ai_timeout':'network'),w=e&&e.retry>3600?' Try again tomorrow.':e&&e.retry?` Try again in ${Math.ceil(e.retry/60)} min.`:'';
+ return({network:"Couldn't reach Smart Import. Check your connection. Everything else in ClassVault still works.",not_configured:'Smart Import is not set up in this build.',rate_limited:e&&e.scope=='global'?'Smart Import is very busy today. Try again tomorrow.':"You've reached the Smart Import limit."+w,too_large:'That text is too long. Paste a smaller section.',empty_input:'Paste some assignment text first.',invalid_ai_response:"The AI's answer couldn't be used. Try rewording or pasting less text.",ai_timeout:'Smart Import took too long. Try again.',ai_busy:'The AI service is busy. Try again in a minute.',ai_budget_used:"Today's free AI budget has been used. Smart Import will be back tomorrow. You can still add assignments yourself."})[c]||'Something went wrong with Smart Import. Try again.'}
+function siOpen(){SI={text:'',tasks:[],err:''};S.aiConsent?siPaste():modal(`<h1 style="font-size:22px">Before you use Smart Import</h1><p>Smart Import sends the text you paste to ClassVault's AI service, which processes it with an AI model (Meta Llama 3.1) running on Cloudflare Workers AI. Your text leaves this device. Don't paste names, grades or anything private. ClassVault doesn't keep your text, and Cloudflare's documentation says it doesn't use content sent to Workers AI to train models.</p><p><small>Built with Llama.</small></p><p>The rest of ClassVault stays on your device.</p><div class="row" style="margin-top:14px"><button class="btn2 grow" data-a="x">Cancel</button><button class="btn grow" data-a="siok">I understand</button></div>`)}
+function siPaste(){modal(`<h1 style="font-size:22px">Smart Import</h1><p>Paste assignment instructions, a syllabus section or a messy list.</p><textarea id="si-text" rows="8" maxlength="${SI_MAX}" placeholder="e.g. Read chapters 4–5 for Monday, answer questions 1–10, and write a 500-word response.">${esc(SI.text)}</textarea><small style="color:var(--mu)"><span id="si-n">${SI.text.length}</span> / ${SI_MAX}</small>${SI.err?`<p role="alert" style="color:var(--red)">${esc(SI.err)}</p>`:''}<br><br><div class="row"><button class="btn2 grow" data-a="x">Cancel</button><button class="btn grow" data-a="sirun">${ic('spark')} Analyze with AI</button></div>`)}
+async function siRun(){if(SI.busy)return;SI.text=$('#si-text')?$('#si-text').value:SI.text;const text=SI.text.trim();
+ if(!text){SI.err='Paste some assignment text first.';return siPaste()}
+ if(text.length>SI_MAX){SI.err='That text is too long. Paste a smaller section.';return siPaste()}
+ if(!S.did){S.did='d'+uid()+uid()+uid();persist()}
+ SI.busy=1;modal(`<h1 style="font-size:22px">Analyzing…</h1><p>Reading your text and pulling out assignments. This usually takes a few seconds.</p><div class="empty" aria-busy="true">Working…</div>`);
+ const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),25000);
+ try{if(SMART_IMPORT_URL.includes('YOUR-WORKER'))throw{c:'not_configured'};
+  const r=await fetch(SMART_IMPORT_URL,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({text,today:ymd(new Date()),classes:S.classes.map(c=>c.name).slice(0,30),deviceId:S.did})});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw{c:j.error||'ai_error',retry:j.retryAfter,scope:j.scope};
+  SI.tasks=siClean(j.tasks);if(!SI.tasks.length)throw{c:'invalid_ai_response'};
+  SI.err='';SI.busy=0;siReview()}
+ catch(e){SI.busy=0;SI.err=siMsg(e);siPaste()}finally{clearTimeout(t)}}
+function siCard(t,i){const m=S.classes.find(c=>c.name.toLowerCase()==t.cn.toLowerCase()),sel=t.sel!==undefined?t.sel:m?m.id:(t.cn||!S.classes.length)?'__new__':'',nn=t.newName!==undefined?t.newName:(m?'':t.cn);
+ return`<article class="card"><div class="row"><span class="chip">${esc(t.kind)}</span><span class="grow"></span><button class="ghost danger" data-a="sirm" data-id="${i}">Remove</button></div>
+ <label>Title</label><input id="si-t-${i}" value="${esc(t.title)}" maxlength="120"><label>Class</label>
+ <select id="si-c-${i}" onchange="this.nextElementSibling.style.display=this.value=='__new__'?'block':'none'"><option value="" ${sel==''?'selected':''}>Choose a class</option>${S.classes.map(c=>`<option value="${c.id}" ${sel==c.id?'selected':''}>${esc(c.name)}</option>`).join('')}<option value="__new__" ${sel=='__new__'?'selected':''}>New class…</option></select>
+ <input id="si-n-${i}" placeholder="New class name" value="${esc(nn)}" maxlength="60" style="display:${sel=='__new__'?'block':'none'}">
+ <div class="row"><div class="grow"><label>Due</label><input id="si-d-${i}" type="date" value="${t.due}"></div><div class="grow"><label>Estimate</label><select id="si-e-${i}">${SI_EST.map(m=>`<option value="${m}" ${t.est==m?'selected':''}>${fmt(m)}</option>`).join('')}</select></div></div>
+ <label>Steps</label><textarea id="si-s-${i}" rows="${Math.max(2,Math.min(t.steps.length,6))}">${esc(t.steps.join('\n'))}</textarea></article>`}
+function siReview(){const n=SI.tasks.length;modal(`<h1 style="font-size:22px">Review ${n} assignment${n>1?'s':''}</h1><p>Check and edit before saving. Nothing is added until you confirm.</p>${SI.tasks.map(siCard).join('')}<div class="row"><button class="btn2 grow" data-a="x">Cancel</button><button class="btn grow" data-a="sisave">Add to ClassVault</button></div>`)}
+function siSync(){SI.tasks.forEach((t,i)=>{const g=k=>$('#'+k+'-'+i);if(!g('si-t'))return;t.title=g('si-t').value;t.sel=g('si-c').value;t.newName=g('si-n').value;t.due=siDate(g('si-d').value)?g('si-d').value:'';t.est=+g('si-e').value||45;t.steps=g('si-s').value.split('\n').map(x=>x.trim().replace(/^[•*-]\s*/,'')).filter(Boolean).slice(0,8)})}
+function siSave(){siSync();if(SI.tasks.some(t=>!t.title.trim()||!t.sel||(t.sel=='__new__'&&!t.newName.trim()))){siReview();toast('Each assignment needs a title and a class.');return}
+ SI.tasks.forEach((t,k)=>{let id=t.sel;if(id=='__new__'){const nm=t.newName.trim().slice(0,60);let c=S.classes.find(x=>x.name.toLowerCase()==nm.toLowerCase());if(!c){c={id:uid(),name:nm,color:COL[S.classes.length%COL.length]};S.classes.push(c)}id=c.id}
+  S.items.push({id:uid(),type:'assignment',title:t.title.trim().slice(0,120),cls:id,desc:t.steps.map(x=>'• '+x).join('\n'),link:'',due:t.due,est:t.est,status:'todo',actual:0,created:Date.now()+k,kind:t.kind,ai:1})});
+ const n=SI.tasks.length;persist();modal('');SI={text:'',tasks:[],err:''};view='plan';render();toast(n+' assignment'+(n>1?'s':'')+' added. Here is your plan.')}
 let busy=0,ATT=null,lv;
 const db=new Promise((ok,no)=>{try{const r=indexedDB.open('cv',1);r.onupgradeneeded=()=>r.result.createObjectStore('b');r.onsuccess=()=>ok(r.result);r.onerror=()=>no()}catch(e){no()}});
+db.catch(()=>{});
 const tx=async(m,f)=>{const d=await db;return new Promise((ok,no)=>{const t=d.transaction('b',m),r=f(t.objectStore('b'));t.oncomplete=()=>ok(r.result);t.onerror=()=>no()})};
 const bput=(k,v)=>tx('readwrite',s=>s.put(v,k)),bget=k=>tx('readonly',s=>s.get(k)),bdel=k=>tx('readwrite',s=>s.delete(k));
 async function showAtt(){const el=$('#att');if(!el)return;if(!ATT){el.innerHTML='<small style="color:var(--mu)">None</small>';return}let p='';
@@ -96,7 +159,7 @@ function home(){const h=new Date().getHours(),g=h<12?'Good morning':h<18?'Good a
  const dd=a.filter(i=>i.due&&diff(i.due)<=0),tm=a.filter(i=>i.due&&diff(i.due)==1),up=a.filter(i=>!i.due||diff(i.due)>1);
  const rec=[...S.items].sort((a,b)=>b.created-a.created).slice(0,4),caught=`You're all caught up.`;
  return`<div class="brand">${ic('vault')} Your School Vault</div><h1>${g}</h1><p style="margin:0">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</p>
- <h2>Due Today</h2>${cards(dd,caught)}<h2>Due Tomorrow</h2>${cards(tm,caught)}<h2>Upcoming</h2>${cards(up,'Nothing due yet.')}
+ <br><button class="btn2" style="width:100%" data-a="si">${ic('spark')} Smart Import (AI)</button>${a.length?`<br><br><button class="btn" data-a="go" data-id="plan">Analyze my workload</button>`:''}<h2>Due Today</h2>${cards(dd,caught)}<h2>Due Tomorrow</h2>${cards(tm,caught)}<h2>Upcoming</h2>${cards(up,'Nothing due yet.')}
  <h2>Recently Saved</h2>${cards(rec,'Your vault is empty.\nSave your first school resource.')}
  <h2>Your Classes</h2>${S.classes.length?`<div class="pills">${S.classes.map(c=>`<button class="pill" data-a="cl" data-id="${c.id}" style="border-color:${c.color}">${esc(c.name)}</button>`).join('')}</div>`:'<div class="empty">Add your first class to get started.</div>'}`}
 function match(i,q){const h=(i.title+' '+i.desc+' '+i.link+' '+((i.att&&i.att.name)||'')+' '+cls(i.cls).name+' '+TN[i.type]).toLowerCase();return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>h.includes(w))}
@@ -121,23 +184,23 @@ function onb(){const d=`<div class="dots">${[1,2,3].map(n=>`<i class="${n<=ob?'o
  if(ob==2)return`<div class="onb"><h1>Add your classes</h1><p>Add the classes you take. You can change them anytime.</p><div class="tags">${obc.map((c,i)=>`<button class="pill on" data-a="orm" data-id="${i}">${esc(c)} ✕</button>`).join('')}</div><div class="row"><input id="oc" placeholder="Class name" style="margin:0"><button class="btn2" data-a="oadd">Add</button></div>${d}<button class="btn" data-a="on">Continue</button></div>`;
  return`<div class="onb c"><div class="logo">${ic('check')}</div><h1 style="font-size:34px">You're ready.</h1><p style="font-size:17px">Start saving assignments, notes, links, and files.</p>${note()}${d}<button class="btn" data-a="fin">Open my vault</button></div>`}
 function render(){const A=$('#app');if(!S.user){A.innerHTML=onb();return}
- const b=view=='home'?home():view=='vault'?vault():view=='classes'?classes():view=='search'?searchPg():classPg(view.slice(2));
- const v=view.startsWith('c:')?'classes':view,n=(id,i,t)=>`<button class="${v==id?'on':''}" data-a="go" data-id="${id}"><span>${ic(i)}</span>${t}</button>`;
+ const b=view=='home'?home():view=='vault'?vault():view=='classes'?classes():view=='search'?searchPg():view=='plan'?planPg():classPg(view.slice(2));
+ const v=view=='plan'?'home':view.startsWith('c:')?'classes':view,n=(id,i,t)=>`<button class="${v==id?'on':''}" data-a="go" data-id="${id}"><span>${ic(i)}</span>${t}</button>`;
  A.innerHTML=`<main>${b}${view=='home'||view=='vault'?note():''}</main><nav>${n('home','home','Home')}${n('vault','vault','Vault')}<button class="plus" data-a="qs" aria-label="Quick Save">${ic('plus')}</button>${n('classes','classes','Classes')}${n('search','search','Search')}</nav>`;if(lv!==view){scrollTo(0,0);lv=view}}
-function qs(){modal(`<h1 style="font-size:22px">What do you want to save?</h1><br><div class="types">${Object.keys(TN).map(t=>`<button data-a="ty" data-id="${t}"><span>${IC[t]}</span>${TN[t]}</button>`).join('')}</div>`)}
+function qs(){modal(`<h1 style="font-size:22px">What do you want to save?</h1><br><button class="btn" style="margin-bottom:12px" data-a="si">${ic('spark')} Smart Import (AI)</button><div class="types">${Object.keys(TN).map(t=>`<button data-a="ty" data-id="${t}"><span>${IC[t]}</span>${TN[t]}</button>`).join('')}</div>`)}
 function form(t,it){if(!S.classes.length){modal(`<div class="empty">Add your first class to get started.</div><br><button class="btn" data-a="addc">+ Add Class</button>`);return}
  const cur=it?it.cls:(view.startsWith('c:')?view.slice(2):S.classes[0].id);
  modal(`<h1 style="font-size:22px">${it?'Edit':'Save'} ${TN[t].toLowerCase()}</h1><br><label>Title *</label><input id="f-t" placeholder="What is it?" value="${esc(it?.title||'')}">
  <label>Class *</label><select id="f-c">${S.classes.map(c=>`<option value="${c.id}" ${c.id==cur?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
  <label>Description</label><textarea id="f-d" rows="3" placeholder="Details (optional)">${esc(it?.desc||'')}</textarea>
- ${t=='assignment'?`<label>Due date</label><input id="f-due" type="date" value="${it?.due||''}"><label>Status</label><select id="f-s">${Object.keys(ST).map(s=>`<option value="${s}" ${(it?.status||'todo')==s?'selected':''}>${ST[s].replace('✓ ','')}</option>`).join('')}</select>`:''}
+ ${t=='assignment'?`<label>Due date</label><input id="f-due" type="date" value="${it?.due||''}"><label>Estimated time</label><select id="f-e">${[0,15,30,45,60,90,120,180,240].map(m=>`<option value="${m}" ${(it?.est||0)==m?'selected':''}>${m?fmt(m):'Not sure'}</option>`).join('')}</select><label>Status</label><select id="f-s">${Object.keys(ST).map(s=>`<option value="${s}" ${(it?.status||'todo')==s?'selected':''}>${ST[s].replace('✓ ','')}</option>`).join('')}</select>`:''}
  ${t!='file'?`<label>Link</label><input id="f-l" placeholder="https://…" value="${esc(it?.link||'')}">`:''}
  <label>Attachment</label><div id="att" style="margin-bottom:8px"></div><div class="row" style="margin-bottom:12px"><label class="btn2 grow" style="margin:0;text-align:center;cursor:pointer;color:var(--tx)">${ic('file')} Photo or file<input id="f-f" type="file" accept="image/*,.pdf,.txt,.csv,.doc,.docx,.ppt,.pptx,.xls,.xlsx" hidden></label><label class="btn2 grow" style="margin:0;text-align:center;cursor:pointer;color:var(--tx)">${ic('camera')} Camera<input id="f-cam" type="file" accept="image/*" capture="environment" hidden></label></div>
  <div class="row"><button class="btn" data-a="sv" data-id="${it?.id||''}" data-t="${t}">${it?'Save changes':'Save to Vault'}</button></div>${it?`<br><button class="ghost danger" data-a="del" data-id="${it.id}">Delete</button>`:''}`);ATT=it?.att?{...it.att}:null;showAtt();setTimeout(()=>$('#f-t')?.focus(),50)}
 async function sv(id,t){const title=$('#f-t').value.trim();if(!title){toast('Add a title first');$('#f-t').focus();return}if(busy)return;busy=1;
  const o=S.items.find(i=>i.id==id)||{id:uid(),type:t,created:Date.now(),status:'todo',link:'',desc:''};
  Object.assign(o,{title,cls:$('#f-c').value,desc:$('#f-d').value.trim()});
- if($('#f-due'))o.due=$('#f-due').value,o.status=$('#f-s').value;
+ if($('#f-due'))o.due=$('#f-due').value,o.status=$('#f-s').value,o.est=+$('#f-e').value||0;
  if($('#f-l')){let l=$('#f-l').value.trim();if(l&&!/^https?:\/\//.test(l))l='https://'+l;if(l){try{new URL(l)}catch(e){toast('That link looks invalid');busy=0;return}}o.link=l}
  try{if(ATT&&ATT.blob){await bput(ATT.id,ATT.blob);if(o.att&&o.att.id!=ATT.id)bdel(o.att.id).catch(()=>{});o.att={id:ATT.id,name:ATT.name,type:ATT.type,size:ATT.size}}else if(!ATT&&o.att){bdel(o.att.id).catch(()=>{});delete o.att}}catch(e){toast('Could not save the attachment');busy=0;return}
  if(!id)S.items.push(o);busy=0;persist();modal('');render();toast(id?'Changes saved.':'Saved to your vault.')}
@@ -147,7 +210,11 @@ async function open(id){const i=S.items.find(x=>x.id==id);if(!i)return;if(i.att)
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(e.target.id=='modal'){modal('');return}if(!el)return;const a=el.dataset.a,id=el.dataset.id;
  if(a=='go'){modal('');view=id;render()}else if(a=='cl'){view='c:'+id;modal('');render()}
  else if(a=='qs')qs();else if(a=='ty')form(id);else if(a=='sv')sv(id,el.dataset.t);
- else if(a=='st'){const i=S.items.find(x=>x.id==id);i.status=NEXT[i.status];persist();render();if(i.status=='done')toast('Assignment completed.')}
+ else if(a=='st'){const i=S.items.find(x=>x.id==id);i.status=NEXT[i.status];if(i.status!='done')i.actual=0;persist();render();if(i.status=='done'){toast('Assignment completed.');ask(i)}}
+ else if(a=='si')siOpen();else if(a=='siok'){S.aiConsent=true;persist();siPaste()}else if(a=='sirun')siRun();else if(a=='sisave')siSave();
+ else if(a=='sirm'){siSync();SI.tasks.splice(+id,1);if(SI.tasks.length)siReview();else{modal('');toast('Nothing to add.')}}
+ else if(a=='act'){const i=S.items.find(x=>x.id==id);if(i){i.actual=+el.dataset.m;persist();modal('');render();toast('Got it. ClassVault will learn from this.')}}
+ else if(a=='demo')demo();else if(a=='demox'){S.items=S.items.filter(i=>!i.demo);S.classes=S.classes.filter(c=>!c.demo);persist();render();toast('Demo data cleared.')}
  else if(a=='open')open(id);else if(a=='edit'){const i=S.items.find(x=>x.id==id);form(i.type,i)}
  else if(a=='del')cfm('Delete this item?',()=>{S.items.filter(x=>x.id==id&&x.att).forEach(x=>bdel(x.att.id).catch(()=>{}));S.items=S.items.filter(x=>x.id!=id);persist();modal('');render();toast('Deleted.')});
  else if(a=='delc')cfm('Delete this class and everything saved in it?',()=>{S.classes=S.classes.filter(x=>x.id!=id);S.items.filter(x=>x.cls==id&&x.att).forEach(x=>bdel(x.att.id).catch(()=>{}));S.items=S.items.filter(x=>x.cls!=id);persist();modal('');view='classes';render();toast('Class deleted.')});
@@ -161,8 +228,8 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(e
  else if(a=='ft'){F.type=id;render()}else if(a=='on'){ob++;render()}else if(a=='orm'){obc.splice(id,1);render()}
  else if(a=='oadd'){const v=$('#oc').value.trim();if(v&&!obc.some(c=>c.toLowerCase()==v.toLowerCase())){obc.push(v);render()}}
  else if(a=='fin'){S.user={name:'Guest'};S.classes=obc.map((n,i)=>({id:uid(),name:n,color:COL[i%COL.length]}));persist();render()}});
-document.addEventListener('input',e=>{if(e.target.id=='vq'){F.q=e.target.value;$('#res').innerHTML=vres()}if(e.target.id=='sq'){Q=e.target.value;$('#sres').innerHTML=sres()}});
-document.addEventListener('change',e=>{if(e.target.id=='f-f'||e.target.id=='f-cam'){pick(e.target.files[0]);e.target.value='';return}const f=e.target.dataset.f;if(f){F[f]=e.target.value;$('#res').innerHTML=vres()}});
+document.addEventListener('input',e=>{if(e.target.id=='si-text'){SI.text=e.target.value;const n=$('#si-n');if(n)n.textContent=e.target.value.length}if(e.target.id=='vq'){F.q=e.target.value;$('#res').innerHTML=vres()}if(e.target.id=='sq'){Q=e.target.value;$('#sres').innerHTML=sres()}});
+document.addEventListener('change',e=>{if(e.target.id=='hrs'){S.hours=+e.target.value;persist();render();return}if(e.target.id=='f-f'||e.target.id=='f-cam'){pick(e.target.files[0]);e.target.value='';return}const f=e.target.dataset.f;if(f){F[f]=e.target.value;$('#res').innerHTML=vres()}});
 document.addEventListener('keydown',e=>{if(e.key=='Escape')modal('');if(e.key=='Enter'&&e.target.id=='oc')$('[data-a=oadd]').click();if(e.key=='Enter'&&e.target.id=='nc')($('[data-a=addc2]')||$('[data-a=renc2]')).click()});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.user&&!$('#modal').classList.contains('on'))render()});

@@ -1,1 +1,20 @@
-{"name":"classvault","version":"1.0.0","private":true,"description":"ClassVault - local-first school vault","scripts":{"build":"node -e \"console.log('No build step: the web app lives in www/')\"","sync":"cap sync ios","open":"cap open ios"},"dependencies":{"@capacitor/core":"^8.5.2","@capacitor/ios":"^8.5.2"},"devDependencies":{"@capacitor/cli":"^8.5.2"}}
+{
+  "name": "classvault",
+  "version": "1.1.0",
+  "private": true,
+  "description": "ClassVault - local-first school vault",
+  "scripts": {
+    "build": "node -e \"console.log('No build step: the web app lives in www/')\"",
+    "sync": "cap sync ios",
+    "open": "cap open ios",
+    "test": "node --test tests/engine.test.js tests/smart-import.e2e.test.js worker/test/worker.test.js"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "jsdom": "^30.1.1"
+  }
+}
