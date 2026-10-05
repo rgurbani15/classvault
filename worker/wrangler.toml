@@ -23,3 +23,7 @@ AI_TIMEOUT_MS = "20000"
 # [[kv_namespaces]]
 # binding = "RATE_KV"
 # id = "PASTE_ID_HERE"
+
+[[kv_namespaces]]
+binding = "RATE_KV"
+id = "1bde68c977a945e0b906c5342576e3a3"

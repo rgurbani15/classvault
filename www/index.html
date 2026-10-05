@@ -97,7 +97,7 @@ function demo(){const cs=[['Biology','#2f5d50'],['World History','#b45309'],['Al
  [['Unit 4 essay',h,-9,60,'done',90],['Chapter 5 quiz',h,-6,30,'done',40],['Map analysis',h,-3,45,'done',60],['Problem set 3.1',a,-8,40,'done',30],['Problem set 3.2',a,-5,40,'done',32],['Quiz review',a,-2,30,'done',24],['Cell lab report',b,-7,60,'done',75],
  ['Photosynthesis write-up',b,1,60],['Essay draft',h,3,90],['Problem set 3.3',a,2,40],['Vocabulary review',h,2,20],['Group project outline',b,6,120]].forEach(r=>add(...r));persist();render();toast('Demo data loaded.')}
 /* ---- Smart Import: the ONLY feature that sends text off the device. The AI runs behind the ClassVault Worker (worker/); there is no API key in this file. ---- */
-let SMART_IMPORT_URL='https://YOUR-WORKER.workers.dev/api/smart-import';
+let SMART_IMPORT_URL='https://classvault-smart-import.classvault.workers.dev/api/smart-import';
 const SI_MAX=4000,SI_KINDS=['homework','reading','essay','project','quiz','test','lab','other'],SI_EST=[15,30,45,60,90,120,180,240];
 P.spark='<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8z"/>';
 let SI={text:'',tasks:[],err:''};
