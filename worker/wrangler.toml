@@ -9,7 +9,7 @@ binding = "AI"
 [vars]
 # Llama 3.1 8B Instruct: on Cloudflare's JSON-mode list, ~50 Neurons per request at the free daily 10,000 Neuron allocation.
 # Llama licence/AUP applies: https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE  (Built with Llama)
-AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+AI_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"
 ALLOWED_ORIGINS = "*"
 RATE_PER_MINUTE = "3"
 RATE_PER_DAY = "10"

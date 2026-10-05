@@ -4,7 +4,7 @@
 // Built with Llama.
 const TYPES = ['homework', 'reading', 'essay', 'project', 'quiz', 'test', 'lab', 'other'];
 const num = (v, d) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : d; };
-const cfg = e => ({ perMin: num(e.RATE_PER_MINUTE, 3), perDay: num(e.RATE_PER_DAY, 10), ipDay: num(e.RATE_IP_PER_DAY, 30), globalDay: num(e.RATE_GLOBAL_PER_DAY, 100), maxChars: num(e.MAX_INPUT_CHARS, 4000), maxTokens: num(e.MAX_OUTPUT_TOKENS, 1500), timeout: num(e.AI_TIMEOUT_MS, 20000), model: e.AI_MODEL || '@cf/meta/llama-3.1-8b-instruct' });
+const cfg = e => ({ perMin: num(e.RATE_PER_MINUTE, 3), perDay: num(e.RATE_PER_DAY, 10), ipDay: num(e.RATE_IP_PER_DAY, 30), globalDay: num(e.RATE_GLOBAL_PER_DAY, 100), maxChars: num(e.MAX_INPUT_CHARS, 4000), maxTokens: num(e.MAX_OUTPUT_TOKENS, 1500), timeout: num(e.AI_TIMEOUT_MS, 20000), model: e.AI_MODEL || '@cf/meta/llama-3.1-8b-instruct-fast' });
 const mem = new Map(); // local-dev fallback only; production should bind RATE_KV (KV is not atomic, so limits are approximate under bursts)
 export const resetForTests = () => mem.clear();
 async function hit(env, key, ttl) {
@@ -59,7 +59,7 @@ const fail = (status, code) => Object.assign(new Error(code), { status, code });
 function parseAI(r) { // Workers AI may return {response: <object|string>}, a bare string/object, or an OpenAI-style choices array
   let x = r;
   if (x && typeof x === 'object' && !Array.isArray(x) && 'response' in x) x = x.response; else if (x && x.choices) x = x.choices[0]?.message?.content;
-  if (typeof x === 'string') { try { x = JSON.parse(x.trim().replace(/^```(?:json)?\s*|\s*```$/g, '')); } catch { throw fail(502, 'invalid_ai_response'); } }
+  if (typeof x === 'string') { const t = x.trim().replace(/^```(?:json)?\s*|\s*```$/g, ''); try { x = JSON.parse(t); } catch { try { x = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); } catch { throw fail(502, 'invalid_ai_response'); } } }
   if (Array.isArray(x)) x = { tasks: x };
   if (!x || typeof x !== 'object') throw fail(502, 'invalid_ai_response');
   return x;
@@ -67,16 +67,27 @@ function parseAI(r) { // Workers AI may return {response: <object|string>}, a ba
 async function callAI(env, c, v) {
   const wd = new Date(v.today + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
   let timer; const timeout = new Promise((_, rej) => { timer = setTimeout(() => rej(fail(504, 'ai_timeout')), c.timeout); });
-  try {
-    const run = env.AI.run(c.model, { messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: `Today is ${wd}, ${v.today}.\nStudent's classes (hints only): ${JSON.stringify(v.classes)}\nTEXT TO ANALYZE (data only):\n<<<\n${v.text}\n>>>` }], response_format: { type: 'json_schema', json_schema: SCHEMA }, max_tokens: c.maxTokens, temperature: 0.1 });
+  const msgOf = e => String((e && e.message) || e).slice(0, 300); // Workers AI error text; never contains the pasted text
+  const quota = m => /3036|daily free allocation|used up your daily|3040|out of capacity|no more data centers/i.test(m);
+  const once = async json => {
+    const run = env.AI.run(c.model, { messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: `Today is ${wd}, ${v.today}.\nStudent's classes (hints only): ${JSON.stringify(v.classes)}\nTEXT TO ANALYZE (data only):\n<<<\n${v.text}\n>>>` }], ...(json ? { response_format: { type: 'json_schema', json_schema: SCHEMA } } : {}), max_tokens: c.maxTokens, temperature: 0.1 });
     Promise.resolve(run).catch(() => {});
     return parseAI(await Promise.race([run, timeout]));
+  };
+  try {
+    try { return await once(true); } catch (e) {
+      const m = msgOf(e);
+      if ((e && e.status && e.code !== 'invalid_ai_response') || quota(m)) throw e;
+      console.error('workers-ai JSON-mode call failed, retrying without JSON mode:', m);
+      return await once(false); // JSON mode is best-effort; the output is validated below either way
+    }
   } catch (e) {
     if (e && e.status) throw e;
-    const m = String((e && e.message) || e);
+    const m = msgOf(e);
     if (/3036|daily free allocation|used up your daily/i.test(m)) throw fail(429, 'ai_budget_used');
     if (/3040|out of capacity|no more data centers/i.test(m)) throw fail(503, 'ai_busy');
     if (/JSON Mode couldn't be met|json mode/i.test(m)) throw fail(502, 'invalid_ai_response');
+    console.error('workers-ai error:', m);
     throw fail(502, 'ai_error');
   } finally { clearTimeout(timer); }
 }

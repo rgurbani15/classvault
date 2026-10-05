@@ -26,7 +26,7 @@ Messy assignment text, then **Smart Import** extracts tasks, the student reviews
 This is statistics plus scheduling logic, not machine learning, and we did not train a model.
 
 ## Smart Import: AI, models and APIs
-- **Model:** Meta **Llama 3.1 8B Instruct** (`@cf/meta/llama-3.1-8b-instruct`) running on **Cloudflare Workers AI**, which is on Cloudflare's JSON-mode model list. **Built with Llama.** The Llama 3.1 Community License and Acceptable Use Policy apply: <https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE>.
+- **Model:** Meta **Llama 3.1 8B Instruct** (`@cf/meta/llama-3.1-8b-instruct-fast`) running on **Cloudflare Workers AI**, which is on Cloudflare's JSON-mode model list. **Built with Llama.** The Llama 3.1 Community License and Acceptable Use Policy apply: <https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE>.
 - **No API key is required.** The Worker reaches the model through a Cloudflare binding (`[ai]` in `worker/wrangler.toml`), so there is nothing to create, paste or leak.
 - **Free tier:** Workers AI includes 10,000 Neurons per day on the free plan. A request costs roughly 50 Neurons on this model (an estimate from Cloudflare's published per-token rates), so the Worker has a **global safety cap of 100 AI requests per day**. When Cloudflare's free allocation runs out, the app shows "daily AI budget used".
 - Built with AI coding assistance (Claude), which the hackathon permits.
