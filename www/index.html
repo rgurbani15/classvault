@@ -88,7 +88,7 @@ const rec=(t,k)=>{const c=cls(t.i.cls),l=t.over>0||t.start==0?['Start today','c-
  return`<article class="card"><div class="row"><span class="ico"><b>${k+1}</b></span><div class="grow"><h3>${esc(t.i.title)}</h3><small style="color:${c.color}">● ${esc(c.name)}</small></div><span class="chip ${l[1]}">${l[0]}</span></div><p style="color:var(--tx);margin:8px 0 2px">About ${fmt(t.p)} · ${dueTxt(t.i)}</p><p style="margin:0">${t.why}</p><div class="row"><span class="grow"></span><button class="ghost" data-a="edit" data-id="${t.i.id}">Edit</button></div></article>`};
 function planPg(){const M=mults(),T=plan(S.hours*60,M),L=S.classes.map(c=>({c,x:M.c(c.id)})).filter(o=>o.x.n>0),dm=S.items.some(i=>i.demo);
  return`<button class="ghost" data-a="go" data-id="home">${ic('back')} Home</button><h1>Workload plan</h1><p>Hours you can work per day <select id="hrs" style="width:auto;display:inline-block;margin:0 0 0 6px">${[1,2,3,4,5,6].map(h=>`<option value="${h}" ${h==S.hours?'selected':''}>${h} h</option>`).join('')}</select></p>
- ${T.length?`<p>${T.length} tasks · about ${fmt(T.reduce((a,t)=>a+t.p,0))} of work, in the order I'd do them</p>`+T.map(rec).join(''):'<div class="empty">Nothing to plan yet.\nAdd assignments with a due date and an estimated time.</div>'}
+ ${T.length?`<p>${T.length} tasks · about ${fmt(T.reduce((a,t)=>a+t.p,0))} of work, in the order I'd do them</p>`+T.map(rec).join(''):'<div class="empty">Nothing to plan yet.\nAdd assignments with a due date and an estimated time, or paste them into Smart Import.</div><br><button class="btn" data-a="si">'+ic('spark')+' Smart Import (AI)</button>'}
  <h2>What ClassVault has learned</h2>${L.length?L.map(o=>`<div class="card"><b>${esc(o.c.name)}</b><br><small>${o.x.n} finished · ${o.x.m>1.1?`you take ${o.x.m.toFixed(1)}× your estimates`:o.x.m<.9?`you finish faster than you estimate (${o.x.m.toFixed(1)}×)`:'your estimates are close'}</small></div>`).join(''):'<div class="empty">Finish a few assignments and say how long they took. Predictions adapt to you.</div>'}
  <p>${dm?'<button class="ghost danger" data-a="demox">Clear demo data</button>':'<button class="ghost" data-a="demo">Load demo data (for judges)</button>'}</p>`}
 function ask(i){modal(`<h1 style="font-size:22px">How long did it take?</h1><p>${i.est?'You estimated '+fmt(i.est)+'. ':''}This helps ClassVault predict your next assignments.</p><div class="types" style="grid-template-columns:repeat(3,1fr)">${[15,30,45,60,90,120].map(m=>`<button data-a="act" data-id="${i.id}" data-m="${m}" style="padding:14px 4px">${fmt(m)}</button>`).join('')}</div><br><button class="btn2" style="width:100%" data-a="x">Skip</button>`)}
@@ -159,7 +159,7 @@ function home(){const h=new Date().getHours(),g=h<12?'Good morning':h<18?'Good a
  const dd=a.filter(i=>i.due&&diff(i.due)<=0),tm=a.filter(i=>i.due&&diff(i.due)==1),up=a.filter(i=>!i.due||diff(i.due)>1);
  const rec=[...S.items].sort((a,b)=>b.created-a.created).slice(0,4),caught=`You're all caught up.`;
  return`<div class="brand">${ic('vault')} Your School Vault</div><h1>${g}</h1><p style="margin:0">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</p>
- <br><button class="btn2" style="width:100%" data-a="si">${ic('spark')} Smart Import (AI)</button>${a.length?`<br><br><button class="btn" data-a="go" data-id="plan">Analyze my workload</button>`:''}<h2>Due Today</h2>${cards(dd,caught)}<h2>Due Tomorrow</h2>${cards(tm,caught)}<h2>Upcoming</h2>${cards(up,'Nothing due yet.')}
+ <br><button class="btn" data-a="si">${ic('spark')} Smart Import (AI)</button><br><br><button class="btn2" style="width:100%" data-a="go" data-id="plan">Analyze my workload</button><h2>Due Today</h2>${cards(dd,caught)}<h2>Due Tomorrow</h2>${cards(tm,caught)}<h2>Upcoming</h2>${cards(up,'Nothing due yet.')}
  <h2>Recently Saved</h2>${cards(rec,'Your vault is empty.\nSave your first school resource.')}
  <h2>Your Classes</h2>${S.classes.length?`<div class="pills">${S.classes.map(c=>`<button class="pill" data-a="cl" data-id="${c.id}" style="border-color:${c.color}">${esc(c.name)}</button>`).join('')}</div>`:'<div class="empty">Add your first class to get started.</div>'}`}
 function match(i,q){const h=(i.title+' '+i.desc+' '+i.link+' '+((i.att&&i.att.name)||'')+' '+cls(i.cls).name+' '+TN[i.type]).toLowerCase();return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>h.includes(w))}
@@ -175,7 +175,10 @@ function classes(){return`<div class="brand">${ic('vault')} Classes</div><h1>Cla
 function classPg(id){const c=S.classes.find(x=>x.id==id);if(!c){view='classes';return classes()}
  const sec=(t,n)=>{const l=S.items.filter(i=>i.cls==id&&i.type==t);return`<h2>${n} (${l.length})</h2>${cards(l,'Nothing here yet.')}`};
  return`<button class="ghost" data-a="go" data-id="classes">${ic('back')} Classes</button><h1 style="color:${c.color}">${esc(c.name)}</h1><p>${S.items.filter(i=>i.cls==id&&i.type=='assignment'&&i.status!='done').length} unfinished assignments</p>${sec('assignment','Assignments')}${sec('note','Notes')}${sec('link','Links')}${sec('file','Files')}<br><button class="ghost" data-a="renc" data-id="${id}">Rename class</button> <button class="ghost danger" data-a="delc" data-id="${id}">Delete class</button>`}
-function sres(){if(!Q.trim())return'<div class="empty">Search titles, notes, links, class names and file names.</div>';
+function sres(){if(!Q.trim()){
+ if(!S.items.length)return'<div class="empty">Nothing to search yet.\nSave an assignment, note, link or file and it will show up here.</div>';
+ const r=[...S.items].sort((a,b)=>b.created-a.created).slice(0,5);
+ return`<p>Search titles, notes, links, class names and file names, or tap to browse.</p><div class="pills">${S.classes.map(c=>`<button class="pill" data-a="sq" data-q="${esc(c.name)}">${esc(c.name)}</button>`).join('')}${Object.keys(TN).map(t=>`<button class="pill" data-a="sq" data-q="${TN[t]}">${TN[t]}s</button>`).join('')}</div><h2>Recently saved</h2>${r.map(card).join('')}`}
  const l=S.items.filter(i=>match(i,Q));if(!l.length)return'<div class="empty">No results. Nothing saved matches that yet.</div>';
  return['assignment','note','link','file'].map(t=>{const x=l.filter(i=>i.type==t);return x.length?`<h2>${TN[t]}s</h2>${x.map(card).join('')}`:''}).join('')}
 function searchPg(){return`<div class="brand">${ic('vault')} Search</div><h1>Search</h1><br><input id="sq" placeholder="Search your school vault…" value="${esc(Q)}"><div id="sres">${sres()}</div>`}
@@ -211,7 +214,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(e
  if(a=='go'){modal('');view=id;render()}else if(a=='cl'){view='c:'+id;modal('');render()}
  else if(a=='qs')qs();else if(a=='ty')form(id);else if(a=='sv')sv(id,el.dataset.t);
  else if(a=='st'){const i=S.items.find(x=>x.id==id);i.status=NEXT[i.status];if(i.status!='done')i.actual=0;persist();render();if(i.status=='done'){toast('Assignment completed.');ask(i)}}
- else if(a=='si')siOpen();else if(a=='siok'){S.aiConsent=true;persist();siPaste()}else if(a=='sirun')siRun();else if(a=='sisave')siSave();
+ else if(a=='sq'){Q=el.dataset.q;render()}else if(a=='si')siOpen();else if(a=='siok'){S.aiConsent=true;persist();siPaste()}else if(a=='sirun')siRun();else if(a=='sisave')siSave();
  else if(a=='sirm'){siSync();SI.tasks.splice(+id,1);if(SI.tasks.length)siReview();else{modal('');toast('Nothing to add.')}}
  else if(a=='act'){const i=S.items.find(x=>x.id==id);if(i){i.actual=+el.dataset.m;persist();modal('');render();toast('Got it. ClassVault will learn from this.')}}
  else if(a=='demo')demo();else if(a=='demox'){S.items=S.items.filter(i=>!i.demo);S.classes=S.classes.filter(c=>!c.demo);persist();render();toast('Demo data cleared.')}
