@@ -14,7 +14,7 @@ const EXAMPLE = { response: { tasks: [
 async function app(env0 = { RATE_PER_MINUTE: '50', RATE_PER_DAY: '50' }) {
   const env = { ...env0, AI: { run: async () => { if (current instanceof Error) throw current; return current; } } };
   const W = await import('../worker/src/index.js'); W.resetForTests();
-  const w = new JSDOM(html, { runScripts: 'dangerously', url: 'https://localhost/', pretendToBeVisual: true, beforeParse(w) { w.scrollTo = () => {}; w.fetch = (u, i) => W.default.fetch(new Request(u, i), env); } }).window;
+  const w = new JSDOM(html, { runScripts: 'dangerously', url: 'https://localhost/', pretendToBeVisual: true, beforeParse(w) { w.scrollTo = () => {}; w.fetch = (u, i) => W.default.fetch(new Request(u, { ...i, signal: undefined }), env); } }).window;
   w.eval("SMART_IMPORT_URL='https://proxy.test/api/smart-import'");
   const d = w.document, $ = s => d.querySelector(s), st = () => JSON.parse(w.localStorage.getItem('classvault.v1'));
   await sleep(100); $('[data-a=on]').click(); $('[data-a=on]').click(); $('[data-a=fin]').click();
