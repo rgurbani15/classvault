@@ -6,6 +6,8 @@ ClassVault is a local-first student app for iPhone. Students save assignments, n
 
 **Live demo:** <https://classvault-demo.pages.dev> (runs in any browser; Smart Import shares a small free AI budget, so it may show "daily AI budget used" if many people try it).
 
+Terms of Service, Privacy Policy- https://sites.google.com/view/classvaultorganizer/home
+
 ## Status: from hackathon project to a real App Store app
 **ClassVault 1.0 is submitted to Apple and in App Review. Once version 1.0 has been reviewed and published, ClassVault will be available as an actual app on the App Store.** The two ImpactHack features below (the Workload Engine and Smart Import) are built on top of 1.0 and are planned to follow in an update. Smart Import sends pasted text to an AI service, so before it reaches students in the App Store the privacy policy and the App Store privacy answers must be updated and reviewed. Until then this repository is a working demo.
 
