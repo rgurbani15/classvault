@@ -67,6 +67,19 @@ test('AI failures map to friendly codes, including the daily free budget', async
   assert.deepEqual([r.status, b.error], [429, 'ai_budget_used']); assert.ok(b.retryAfter > 0 && Number(r.headers.get('Retry-After')) > 0);
   r = await call(ok(), env(ai(new Error('3040: No more data centers to forward the request to')))); assert.deepEqual([r.status, (await r.json()).error], [503, 'ai_busy']);
 });
+test('if JSON mode itself errors, retry once without it and still return validated tasks', async () => {
+  let n = 0; const logs = []; const o = console.error; console.error = (...a) => logs.push(a.join(' '));
+  const a = ai((m, input) => { n++; if (input.response_format) throw new Error('5006: schema not supported'); return { response: 'Sure! ' + JSON.stringify({ tasks: [task()] }) + ' Hope that helps.' }; });
+  const r = await call(ok(), env(a)); console.error = o;
+  assert.equal(r.status, 200); assert.equal(calls.length, 2); assert.ok(calls[0].input.response_format); assert.equal(calls[1].input.response_format, undefined);
+  assert.ok(logs.some(l => l.includes('5006'))); assert.ok(!logs.join(' ').includes('Read chapters'), 'user text is never logged');
+});
+test('no retry for quota, capacity or timeout errors; a persistent failure logs the real message and returns ai_error', async () => {
+  let r = await call(ok(), env(ai(new Error('3036: used up your daily free allocation')))); assert.equal(r.status, 429); assert.equal(calls.length, 1);
+  const logs = []; const o = console.error; console.error = (...a) => logs.push(a.join(' '));
+  r = await call(ok(), env(ai(new Error('9999: model unavailable')))); console.error = o;
+  assert.equal(r.status, 502); assert.equal((await r.json()).error, 'ai_error'); assert.equal(calls.length, 2); assert.ok(logs.some(l => l.includes('9999: model unavailable')));
+});
 test('AI timeout -> 504', async () => {
   const r = await call(ok(), env({ run: () => new Promise(() => {}) }, { AI_TIMEOUT_MS: '30' })); assert.deepEqual([r.status, (await r.json()).error], [504, 'ai_timeout']);
 });
