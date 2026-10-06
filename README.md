@@ -22,7 +22,7 @@ Students don't just have too many assignments. They don't know what to do first.
 Messy assignment text, then **Smart Import** extracts tasks, the student reviews and edits, ClassVault saves them, the **Workload Engine** predicts the workload and decides what to do first, the student finishes tasks, and future estimates improve.
 
 ## What's new for ImpactHack (transparency)
-ClassVault 1.0 existed before ImpactHack (see the tag `v1.0-pre-hackathon`). New work since then:
+ClassVault 1.0 existed before ImpactHack (it was created a few days before the hackathon started; see the tag `v1.0-pre-hackathon`). New work since then:
 - Estimated time on assignments, and a "how long did it take?" prompt on completion
 - The adaptive Workload Engine (estimator plus scheduler) and its plan screen
 - **Smart Import**, backed by a rate-limited Cloudflare Worker using Workers AI
