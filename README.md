@@ -4,7 +4,7 @@
 
 ClassVault is a local-first student app for iPhone. Students save assignments, notes, links, photos and files by class, then ask ClassVault what to work on first.
 
-**Live demo:** <https://classvault-demo.pages.dev> I recommend using private browsing so the whole website resets. (runs in any browser; Smart Import shares a small free AI budget, so it may show "daily AI budget used" if many people try it).
+**Live demo:** <https://classvault-demo.pages.dev> I recommend using private browsing so the whole website resets. (runs in any browser; Smart Import shares a small free AI budget, so it may show "daily AI budget used" if many people try it), the site has rate limiting. 
 
 Terms of Service, Privacy Policy- https://sites.google.com/view/classvaultorganizer/home
 
