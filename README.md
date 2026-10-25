@@ -13,7 +13,7 @@ ClassVault is a local-first student app for iPhone and the web. Students save as
 
 Built by a high-school student for the **Congressional App Challenge 2026**. ClassVault 2.0 also placed **6th overall out of 448 participants and projects, and won the Best Education Project award, at ImpactHack 2026**.
 
-> **Tip for judges:** open the live demo in a private or incognito window for a clean start. Smart Import shares a small free AI budget and is rate limited, so it may show "daily AI budget used" if many people try it. The demo video shows the full flow.
+> **Tip:** open the live demo in a private or incognito window for a clean start. Smart Import shares a small free AI budget and is rate limited, so it may show "daily AI budget used" if many people try it. The demo video shows the full flow.
 
 ## The problem
 
